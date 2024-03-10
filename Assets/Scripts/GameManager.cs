@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
@@ -17,7 +18,20 @@ public class GameManager : MonoBehaviour
     public int currentPlayerID;
 
     public GameObject pauseOverlay; 
-    public TextMeshProUGUI levelUpText; 
+    public TextMeshProUGUI levelUpText;
+
+    public TextMeshProUGUI timerText; // Assign in the inspector
+    private float elapsedTime = 0f;
+
+    public List<RarityWeighting> weights1; 
+    public List<RarityWeighting> weights2; 
+    public List<RarityWeighting> weights3; 
+    public List<RarityWeighting> weights4; 
+    public List<RarityWeighting> weights5;
+
+    public List<int> weightThresholds;
+
+    public List<Upgrade> filteredUpgrades;
 
     private void Awake()
     {
@@ -26,6 +40,25 @@ public class GameManager : MonoBehaviour
 
         levelUpText.gameObject.SetActive(false);
         pauseOverlay.SetActive(false);
+    }
+
+    private void Update()
+    {
+        if (Time.timeScale > 0) // Ensuring the timer only runs when the game isn't paused
+        {
+            elapsedTime += Time.deltaTime;
+            DisplayTime(elapsedTime);
+        }
+    }
+
+    void DisplayTime(float timeToDisplay)
+    {
+        timeToDisplay += 1;
+
+        float minutes = Mathf.FloorToInt(timeToDisplay / 60);
+        float seconds = Mathf.FloorToInt(timeToDisplay % 60);
+
+        timerText.text = string.Format("{0:00}:{1:00}", minutes, seconds);
     }
 
     public void PauseGameForUpgrades(int playerID)
@@ -49,9 +82,20 @@ public class GameManager : MonoBehaviour
             new Vector2(horizontalDistance, yOffset) // Right with yOffset
         };
 
+        // Determine the current phase of the game based on elapsedTime
+        List<RarityWeighting> currentWeights = DetermineCurrentWeights();
+        List<Upgrade> selectedUpgrades = new List<Upgrade>(); // Track selected upgrades
+
         for (int i = 0; i < 3; i++)
         {
-            Upgrade upgrade = allUpgrades[Random.Range(0, allUpgrades.Count)];
+            Upgrade upgrade = WeightedUpgradeSelection(currentWeights, selectedUpgrades);
+            if (upgrade == null)
+            {
+                Debug.LogWarning("Failed to find a unique upgrade; list may be exhausted.");
+                break;
+            }
+
+            selectedUpgrades.Add(upgrade); // Ensure this upgrade isn't picked again
             GameObject option = Instantiate(upgradeUIPrefab, upgradeOptionsParent);
 
             // Assuming the option GameObject uses a RectTransform
@@ -91,6 +135,66 @@ public class GameManager : MonoBehaviour
             currentUpgradeOptions.Add(option);
         }
 
+    }
+
+    List<RarityWeighting> DetermineCurrentWeights()
+    {
+        if (elapsedTime <= weightThresholds[0])
+        {
+            return weights1;
+        }
+        else if (elapsedTime <= weightThresholds[1])
+        {
+            return weights2;
+        }
+        else if (elapsedTime <= weightThresholds[2])
+        {
+            return weights3;
+        }
+        else if (elapsedTime <= weightThresholds[3])
+        {
+            return weights4;
+        }
+        else if (elapsedTime > weightThresholds[3])
+        {
+            return weights5;
+        }
+
+        return null; // Default, consider handling this case
+    }
+
+    Upgrade WeightedUpgradeSelection(List<RarityWeighting> weights, List<Upgrade> excludeList)
+    {
+        // Calculate total weight
+        float totalWeight = weights.Sum(weight => weight.weight);
+        // Randomly select a point within this total weight
+        float randomPoint = Random.Range(0, totalWeight);
+        float currentSum = 0;
+        Upgrade.Rarity selectedRarity = Upgrade.Rarity.Common; // Default if not found
+
+        // Determine selected rarity based on weighted random selection
+        foreach (var weight in weights)
+        {
+            currentSum += weight.weight;
+            if (currentSum >= randomPoint)
+            {
+                selectedRarity = weight.rarity;
+                break;
+            }
+        }
+
+        // Filter allUpgrades based on the selected rarity and exclude those already selected
+        List<Upgrade> availableUpgrades = allUpgrades.Where(upgrade => upgrade.rarity == selectedRarity && !excludeList.Contains(upgrade)).ToList();
+
+        if (availableUpgrades.Count > 0)
+        {
+            return availableUpgrades[Random.Range(0, availableUpgrades.Count)]; // Select randomly from available upgrades
+        }
+        else
+        {
+            Debug.LogWarning("No available upgrades found for the selected rarity and exclude list.");
+            return null; // or handle as needed
+        }
     }
 
     void ApplyUpgrade(Upgrade upgrade, int playerID)
@@ -181,4 +285,12 @@ public class GameManager : MonoBehaviour
         // This function needs to find all balls and reset their properties to default
         // Also consider resetting any global effects applied from upgrades
     }
+}
+
+
+[System.Serializable]
+public class RarityWeighting
+{
+    public Upgrade.Rarity rarity;
+    public float weight;
 }

@@ -5,7 +5,7 @@ public class BallController : MonoBehaviour
     public float baseSpeed = 5f;
     public float speed;
     public float speedMult = 1f;
-    public float baseSize = 1f;
+    public float baseSize = 0.5f;
     public float size;
     public float sizeMult = 1f;
     public int pierce = 0;
@@ -35,8 +35,14 @@ public class BallController : MonoBehaviour
 
     public void CalculateStats()
     {
+        if (baseSize <= 0.1f) { baseSize = 0.1f; }
+        if (baseSpeed <= 0.1f) { baseSpeed = 0.1f; }
+        if (sizeMult <= 0.05f) { sizeMult = 0.05f; }
+        if (speedMult <= 0.05f) { speedMult = 0.05f; }
+
         speed = baseSpeed * speedMult;
         size = baseSize * sizeMult;
+
         transform.localScale = new Vector3 (size,size,size);
     }
 

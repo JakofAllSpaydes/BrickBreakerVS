@@ -57,13 +57,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad0b1619622c6cb4f8fc9074f0476f7b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 20
+  baseSpeed: 15
+  speed: 15
+  speedMult: 1
+  baseSize: 0.5
+  size: 0.5
+  sizeMult: 1
+  pierce: 0
+  boostMult: 1
+  boostDuration: 0
+  chargeMult: 1
+  chargeRate: 1
+  bounceAngle: 0
   collideWithLayer:
     serializedVersion: 2
     m_Bits: 64
   material1: {fileID: 2100000, guid: 8dfd47b9d531db144bd0652e19e8306e, type: 2}
   material2: {fileID: 2100000, guid: c8bc8ff7cc679e044b546aeeb91674c0, type: 2}
   playerID: 2
+  randomness: 10
 --- !u!23 &4133131539495113309
 MeshRenderer:
   m_ObjectHideFlags: 0
