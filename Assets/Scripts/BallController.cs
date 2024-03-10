@@ -23,6 +23,8 @@ public class BallController : MonoBehaviour
 
     public int playerID;
     private PlayerManager playerManager;
+    public GameManager gameManager;
+
 
     public float randomness = 10f; // Control the amount of randomness in bounce
 
@@ -30,6 +32,8 @@ public class BallController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         playerManager = FindObjectOfType<PlayerManager>();
+        gameManager = FindObjectOfType<GameManager>();
+
         ChooseRandomDirection();
     }
 
@@ -37,7 +41,7 @@ public class BallController : MonoBehaviour
     {
         if (baseSize <= 0.1f) { baseSize = 0.1f; }
         if (baseSpeed <= 0.1f) { baseSpeed = 0.1f; }
-        if (sizeMult <= 0.05f) { sizeMult = 0.05f; }
+        if (sizeMult <= 0.1f) { sizeMult = 0.1f; }
         if (speedMult <= 0.05f) { speedMult = 0.05f; }
 
         speed = baseSpeed * speedMult;
@@ -58,12 +62,14 @@ public class BallController : MonoBehaviour
         {
             AdjustDirectionAndVelocity();
 
-            Renderer renderer = other.gameObject.GetComponent<Renderer>();
-            if (renderer != null)
+            Block block = other.gameObject.GetComponent<Block>();
+            if (block != null && block.owner != playerID)
             {
-                renderer.material = renderer.material.name.StartsWith(material1.name) ? material2 : material1;
-                other.gameObject.layer = other.gameObject.layer == LayerMask.NameToLayer("P1") ? LayerMask.NameToLayer("P2") : LayerMask.NameToLayer("P1");
+                // Notify GameManager of the ownership change
+                gameManager.ChangeBlockOwnership(block.owner, playerID);
+                block.SetOwnership(playerID);
 
+                // Additional logic for XP adjustment
                 if (playerManager != null)
                 {
                     playerManager.AddXP(playerID);

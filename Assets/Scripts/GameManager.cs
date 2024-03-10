@@ -6,8 +6,6 @@ using System.Linq;
 
 public class GameManager : MonoBehaviour
 {
-    public static GameManager Instance { get; private set; }
-
     public float horizontalDistance = 200f; // Distance from the center for left and right options
     public float yOffset = 20f; // Vertical offset for all options
     public GameObject upgradeUIPrefab; // Assign a prefab with TMP text, image for icon, etc.
@@ -17,21 +15,39 @@ public class GameManager : MonoBehaviour
     private List<GameObject> currentUpgradeOptions = new List<GameObject>();
     public int currentPlayerID;
 
-    public GameObject pauseOverlay; 
+    public GameObject pauseOverlay;
     public TextMeshProUGUI levelUpText;
 
     public TextMeshProUGUI timerText; // Assign in the inspector
     private float elapsedTime = 0f;
 
-    public List<RarityWeighting> weights1; 
-    public List<RarityWeighting> weights2; 
-    public List<RarityWeighting> weights3; 
-    public List<RarityWeighting> weights4; 
+    public List<RarityWeighting> weights1;
+    public List<RarityWeighting> weights2;
+    public List<RarityWeighting> weights3;
+    public List<RarityWeighting> weights4;
     public List<RarityWeighting> weights5;
 
     public List<int> weightThresholds;
 
     public List<Upgrade> filteredUpgrades;
+    public TextMeshProUGUI countdownText;
+
+    public float winPercentage = 75f; // Percentage to trigger win condition
+    public float countdownDuration = 5f; // Duration for the countdown
+    public bool countdownActive = false;
+    float currentCountdownTime;
+
+    private int totalBlocks;
+    public int player1Blocks = 0;
+    public int player2Blocks = 0;
+    private int currentLeadingPlayer = 0;
+    public TextMeshProUGUI p1BlocksText;
+    public TextMeshProUGUI p2BlocksText;
+    private float previousTimeScale = 1f; // Default value is normal time scale
+
+    public static GameManager Instance { get; private set; }
+    private bool winState = false;
+    private bool gamePaused = false;
 
     private void Awake()
     {
@@ -40,15 +56,54 @@ public class GameManager : MonoBehaviour
 
         levelUpText.gameObject.SetActive(false);
         pauseOverlay.SetActive(false);
+        countdownText.gameObject.SetActive(false);
+
+        winState = false;
+    }
+
+    public void SetTotalBlocks(int count)
+    {
+        totalBlocks = count;
     }
 
     private void Update()
     {
-        if (Time.timeScale > 0) // Ensuring the timer only runs when the game isn't paused
-        {
-            elapsedTime += Time.deltaTime;
-            DisplayTime(elapsedTime);
+        if (!winState && !gamePaused) {
+            if (Time.timeScale > 0) // Ensuring the timer only runs when the game isn't paused
+            {
+                elapsedTime += Time.deltaTime;
+                DisplayTime(elapsedTime);
+            }
+
+            if (!countdownActive)
+            {
+                // Check for both players
+                for (int playerID = 1; playerID <= 2; playerID++)
+                {
+                    if (CalculateOwnershipPercentage(playerID) > winPercentage)
+                    {
+                        StartWinCountdown(playerID);
+                        break; // Exit loop early if a win condition is found
+                    }
+                }
+            }
+            else
+            {
+                HandleCountdown();
+            }
+
+            // Update ownership UI
+            UpdateOwnershipUI();
         }
+    }
+
+    void UpdateOwnershipUI()
+    {
+        int p1Percentage = Mathf.RoundToInt((float)player1Blocks / totalBlocks * 100);
+        int p2Percentage = Mathf.RoundToInt((float)player2Blocks / totalBlocks * 100);
+
+        p1BlocksText.text = $"Owned: {p1Percentage}%";
+        p2BlocksText.text = $"Owned: {p2Percentage}%";
     }
 
     void DisplayTime(float timeToDisplay)
@@ -63,7 +118,9 @@ public class GameManager : MonoBehaviour
 
     public void PauseGameForUpgrades(int playerID)
     {
+        gamePaused = true;
         currentPlayerID = playerID; // Store the player ID
+        previousTimeScale = Time.timeScale; // Save the current time scale
         Time.timeScale = 0f; // Pause the game  
         pauseOverlay.SetActive(true); // Show pause overlay
         levelUpText.gameObject.SetActive(true);
@@ -259,7 +316,8 @@ public class GameManager : MonoBehaviour
         levelUpText.gameObject.SetActive(false);
         pauseOverlay.SetActive(false); // Hide pause overlay
         CleanupUpgradeOptions();
-        Time.timeScale = 1f; // Unpause the game
+        Time.timeScale = previousTimeScale;
+        gamePaused = false;
     }
 
     void CleanupUpgradeOptions()
@@ -276,8 +334,85 @@ public class GameManager : MonoBehaviour
         levelUpText.gameObject.SetActive(true);
         string playerName = playerID == 1 ? "PLAYER 1" : "PLAYER 2";
         levelUpText.text = $"{playerName} UPGRADE";
-        levelUpText.color = playerID == 1 ? Color.cyan : Color.yellow; 
+        levelUpText.color = playerID == 1 ? Color.cyan : Color.yellow;
     }
+
+    public void ChangeBlockOwnership(int oldOwner, int newOwner)
+    {
+        // Ensure thread-safe update to block counters
+        lock (this)
+        {
+            if (oldOwner == 1)
+            {
+                player1Blocks--;
+            }
+            else if (oldOwner == 2)
+            {
+                player2Blocks--;
+            }
+
+            if (newOwner == 1)
+            {
+                player1Blocks++;
+            }
+            else if (newOwner == 2)
+            {
+                player2Blocks++;
+            }
+        }
+    }
+
+    float CalculateOwnershipPercentage(int playerID)
+    {
+        int ownedBlocks = playerID == 1 ? player1Blocks : player2Blocks;
+        return (float)ownedBlocks / totalBlocks * 100f;
+    }
+
+    public void StartWinCountdown(int winningPlayer)
+    {
+        countdownActive = true;
+        currentLeadingPlayer = winningPlayer; // Store the current leading player
+        currentCountdownTime = countdownDuration;
+        countdownText.gameObject.SetActive(true);
+    }
+
+    public void HandleCountdown()
+    {
+        // Check if the current leading player still meets the win condition
+        if (CalculateOwnershipPercentage(currentLeadingPlayer) < winPercentage)
+        {
+            ResetWinCondition();
+            return;
+        }
+
+        currentCountdownTime -= Time.deltaTime;
+        float lerpFactor = 1f - (currentCountdownTime / countdownDuration);
+        Time.timeScale = Mathf.Lerp(1f, 0.2f, lerpFactor);
+        countdownText.text = Mathf.Ceil(currentCountdownTime).ToString();
+
+
+        if (currentCountdownTime <= 0)
+        {
+            WinGame(currentLeadingPlayer); // Pass the winning player ID
+        }
+    }
+
+    void ResetWinCondition()
+    {
+        countdownActive = false;
+        countdownText.gameObject.SetActive(false);
+        Time.timeScale = 1f; // Reset game speed to normal
+        currentLeadingPlayer = 0; // Reset leading player
+    }
+
+    void WinGame(int playerID)
+    {
+        winState = true;
+        countdownText.text = $"PLAYER {playerID} WINS!";
+        Time.timeScale = 0f; // Further slow down game speed, if desired
+        currentLeadingPlayer = 0; // Reset leading player after declaring a winner
+    }
+
 
     public void ResetUpgradesAndBalls()
     {
@@ -286,7 +421,6 @@ public class GameManager : MonoBehaviour
         // Also consider resetting any global effects applied from upgrades
     }
 }
-
 
 [System.Serializable]
 public class RarityWeighting

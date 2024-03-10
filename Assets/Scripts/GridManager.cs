@@ -6,18 +6,24 @@ public class GridManager : MonoBehaviour
     public GameObject gridSquarePrefab;
     public GameObject playerBallPrefab1, playerBallPrefab2;
     public GameObject wallPrefab;
-    public int gridWidth = 100;
-    public int gridHeight = 100;
+    public int gridWidth;
+    public int gridHeight;
     public float squareSpacing = 1f;
     public List<Material> materials = new List<Material>();
 
     public float ballSpawnYAdjustment = 10;
+    public GameManager gameManager;
 
     private void Start()
     {
         GenerateGrid();
         SpawnPlayerBalls();
         CreatePerimeterWalls();
+        gameManager = FindObjectOfType<GameManager>();
+        int halfTheBlocks = (gridWidth * gridHeight) / 2;
+        gameManager.player1Blocks = halfTheBlocks;
+        gameManager.player2Blocks = halfTheBlocks;
+        gameManager.SetTotalBlocks(gridWidth * gridHeight);
     }
 
     void GenerateGrid()
@@ -29,11 +35,14 @@ public class GridManager : MonoBehaviour
                 GameObject square = Instantiate(gridSquarePrefab, new Vector3(x * squareSpacing, 0, z * squareSpacing), Quaternion.identity);
                 square.transform.parent = this.transform;
 
-                Renderer squareRenderer = square.GetComponent<Renderer>();
-                if (materials.Count >= 2)
+                // Determine ownership based on position
+                int owner = x < gridWidth / 2 ? 1 : 2;
+
+                // Use the Block component to set ownership, which will handle material and layer
+                Block blockComponent = square.GetComponent<Block>();
+                if (blockComponent != null)
                 {
-                    squareRenderer.material = x < gridWidth / 2 ? materials[0] : materials[1];
-                    square.layer = LayerMask.NameToLayer(x < gridWidth / 2 ? "P1" : "P2");
+                    blockComponent.SetOwnership(owner);
                 }
 
                 square.name = $"Square_{x}_{z}";
