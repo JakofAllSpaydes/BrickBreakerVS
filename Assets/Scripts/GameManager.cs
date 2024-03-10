@@ -7,6 +7,8 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
+    public float horizontalDistance = 200f; // Distance from the center for left and right options
+    public float yOffset = 20f; // Vertical offset for all options
     public GameObject upgradeUIPrefab; // Assign a prefab with TMP text, image for icon, etc.
     public Transform upgradeOptionsParent; // UI panel to parent upgrade options
     public List<Upgrade> allUpgrades; // All possible upgrades, populate in the inspector
@@ -14,58 +16,144 @@ public class GameManager : MonoBehaviour
     private List<GameObject> currentUpgradeOptions = new List<GameObject>();
     public int currentPlayerID;
 
+    public GameObject pauseOverlay; 
+    public TextMeshProUGUI levelUpText; 
+
     private void Awake()
     {
         if (Instance == null) { Instance = this; }
         else { Destroy(gameObject); }
+
+        levelUpText.gameObject.SetActive(false);
+        pauseOverlay.SetActive(false);
     }
 
     public void PauseGameForUpgrades(int playerID)
     {
         currentPlayerID = playerID; // Store the player ID
         Time.timeScale = 0f; // Pause the game  
+        pauseOverlay.SetActive(true); // Show pause overlay
+        levelUpText.gameObject.SetActive(true);
+        ShowLevelUpMessage(playerID);
         ShowUpgradeOptions(playerID);
     }
 
     void ShowUpgradeOptions(int playerID)
     {
-        // Randomly pick 3 upgrades
+        // Define positions for the upgrades
+        Vector2 centerPosition = new Vector2(0, yOffset); // Apply yOffset to center
+        Vector2[] positions = new Vector2[]
+        {
+            new Vector2(-horizontalDistance, yOffset), // Left with yOffset
+            centerPosition, // Center already includes yOffset
+            new Vector2(horizontalDistance, yOffset) // Right with yOffset
+        };
+
         for (int i = 0; i < 3; i++)
         {
             Upgrade upgrade = allUpgrades[Random.Range(0, allUpgrades.Count)];
             GameObject option = Instantiate(upgradeUIPrefab, upgradeOptionsParent);
 
-            // Set the UI elements based on the upgrade
-            option.GetComponentInChildren<TMP_Text>().text = upgrade.name + "\n" + upgrade.description;
-            option.GetComponentInChildren<Image>().sprite = upgrade.icon;
+            // Assuming the option GameObject uses a RectTransform
+            RectTransform rectTransform = option.GetComponent<RectTransform>();
+            if (rectTransform != null)
+            {
+                rectTransform.anchoredPosition = positions[i];
+            }
+            else
+            {
+                Debug.LogError("RectTransform not found on the instantiated upgrade option.");
+            }
 
-            // Add click listener to apply upgrade
-            option.GetComponent<Button>().onClick.AddListener(() => ApplyUpgrade(upgrade, playerID));
+            // Find and set the Name text
+            TMP_Text nameText = option.transform.Find("Name").GetComponent<TMP_Text>();
+            if (nameText != null) nameText.text = upgrade.name;
+
+            // Find and set the Rarity text
+            TMP_Text rarityText = option.transform.Find("Rarity").GetComponent<TMP_Text>();
+            if (rarityText != null) rarityText.text = upgrade.rarity.ToString();
+
+            // Find and set the Description text
+            TMP_Text descriptionText = option.transform.Find("Description").GetComponent<TMP_Text>();
+            if (descriptionText != null) descriptionText.text = upgrade.description;
+
+            // Find and set the Icon image
+            Image iconImage = option.transform.Find("Icon").GetComponent<Image>();
+            if (iconImage != null) iconImage.sprite = upgrade.icon;
+
+            Button optionButton = option.GetComponent<Button>();
+            if (optionButton != null)
+            {
+                Upgrade localUpgrade = upgrade; // Local copy for delegate capture
+                optionButton.onClick.AddListener(delegate { ApplyUpgrade(localUpgrade, currentPlayerID); });
+            }
 
             currentUpgradeOptions.Add(option);
         }
+
     }
 
     void ApplyUpgrade(Upgrade upgrade, int playerID)
     {
-        // Find the player's ball and apply the upgrade
-        BallController ball = FindPlayerBall(playerID); // Implement this based on your player/ball management
-        if (ball != null)
+        // Find all BallController instances in the scene
+        BallController[] allBalls = FindObjectsOfType<BallController>();
+
+        // Iterate through all balls to find those with the matching playerID
+        foreach (BallController ball in allBalls)
         {
-            switch (upgrade.effectType)
+            if (ball.playerID == playerID)
             {
-                case Upgrade.EffectType.Speed:
-                    ball.speed += upgrade.additiveValue;
-                    // Implement multiplier logic if needed
-                    break;
-                case Upgrade.EffectType.Size:
-                    ball.transform.localScale += Vector3.one * upgrade.additiveValue;
-                    break;
-                    // Handle other cases
+                // Apply each effect in the upgrade to the matching ball
+                foreach (var effect in upgrade.effects)
+                {
+                    switch (effect.effectType)
+                    {
+                        case Upgrade.EffectType.Speed:
+                            ball.baseSpeed += effect.additiveValue;
+                            ball.speedMult += effect.multiplierValue;
+                            break;
+                        case Upgrade.EffectType.Size:
+                            ball.baseSize += effect.additiveValue;
+                            ball.sizeMult += effect.multiplierValue;
+                            break;
+                        case Upgrade.EffectType.Pierce:
+                            int amountToPierce = Mathf.RoundToInt(effect.additiveValue);
+                            ball.pierce += amountToPierce;
+                            break;
+                        case Upgrade.EffectType.Split:
+                            int numberOfBallsToSplit = Mathf.RoundToInt(effect.additiveValue);
+                            for (int i = 0; i < numberOfBallsToSplit; i++)
+                            {
+                                Instantiate(ball.gameObject, ball.transform.position, ball.transform.rotation);
+                            }
+                            break;
+                        case Upgrade.EffectType.Boost:
+                            ball.boostMult += effect.multiplierValue;
+                            ball.boostDuration += effect.additiveValue;
+                            break;
+                        case Upgrade.EffectType.Charge:
+                            ball.chargeRate -= effect.additiveValue;
+                            ball.chargeMult += effect.multiplierValue;
+                            break;
+                        case Upgrade.EffectType.BounceAngle:
+                            // Ensure your BallController script can handle this property
+                            break;
+                            // Add cases for other effects as needed
+                    }
+                }
+                // Call any recalculations or refresh methods needed after applying upgrades
+                ball.CalculateStats();
             }
         }
 
-        // Cleanup and resume game
+        ResumeGame();
+    }
+
+
+    public void ResumeGame()
+    {
+        levelUpText.gameObject.SetActive(false);
+        pauseOverlay.SetActive(false); // Hide pause overlay
         CleanupUpgradeOptions();
         Time.timeScale = 1f; // Unpause the game
     }
@@ -79,10 +167,12 @@ public class GameManager : MonoBehaviour
         currentUpgradeOptions.Clear();
     }
 
-    BallController FindPlayerBall(int playerID)
+    public void ShowLevelUpMessage(int playerID)
     {
-        // Implement based on your game's logic for finding the appropriate ball
-        return null;
+        levelUpText.gameObject.SetActive(true);
+        string playerName = playerID == 1 ? "PLAYER 1" : "PLAYER 2";
+        levelUpText.text = $"{playerName} UPGRADE";
+        levelUpText.color = playerID == 1 ? Color.cyan : Color.yellow; 
     }
 
     public void ResetUpgradesAndBalls()

@@ -2,7 +2,19 @@ using UnityEngine;
 
 public class BallController : MonoBehaviour
 {
-    public float speed = 5f;
+    public float baseSpeed = 5f;
+    public float speed;
+    public float speedMult = 1f;
+    public float baseSize = 1f;
+    public float size;
+    public float sizeMult = 1f;
+    public int pierce = 0;
+    public float boostMult = 1f;
+    public float boostDuration = 0f;
+    public float chargeMult = 1f;
+    public float chargeRate = 1f;
+    public float bounceAngle;
+
     private Rigidbody rb;
     private Vector3 direction;
     public LayerMask collideWithLayer; // Set this in the inspector
@@ -19,6 +31,13 @@ public class BallController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         playerManager = FindObjectOfType<PlayerManager>();
         ChooseRandomDirection();
+    }
+
+    public void CalculateStats()
+    {
+        speed = baseSpeed * speedMult;
+        size = baseSize * sizeMult;
+        transform.localScale = new Vector3 (size,size,size);
     }
 
     private void ChooseRandomDirection()
