@@ -367,7 +367,7 @@ MonoBehaviour:
     - effectType: 5
       genericValue: 0
       additiveValue: 0
-      multiplierValue: 0.15
+      multiplierValue: 0.06
   - name: Charge 2
     description: Increase speed every second, resets on block contact.
     rarity: 1
@@ -376,7 +376,7 @@ MonoBehaviour:
     - effectType: 5
       genericValue: 0
       additiveValue: 0
-      multiplierValue: 0.2
+      multiplierValue: 0.08
   - name: Charge 3
     description: Increase speed every second, resets on block contact.
     rarity: 2
@@ -385,7 +385,7 @@ MonoBehaviour:
     - effectType: 5
       genericValue: 0
       additiveValue: 0
-      multiplierValue: 0.25
+      multiplierValue: 0.12
   - name: Charge 4
     description: Increase speed every second, resets on block contact.
     rarity: 3
@@ -394,7 +394,7 @@ MonoBehaviour:
     - effectType: 5
       genericValue: 0
       additiveValue: 0
-      multiplierValue: 0.3
+      multiplierValue: 0.15
   - name: Charge 5
     description: Increase speed every second, resets on block contact.
     rarity: 4
@@ -403,54 +403,74 @@ MonoBehaviour:
     - effectType: 5
       genericValue: 0
       additiveValue: 0
-      multiplierValue: 0.4
+      multiplierValue: 0.2
   - name: Lazy 1
-    description: Balls always bounce at a 30 degree angle.
-    rarity: 1
+    description: Balls are stronger and always bounce at a 30 degree angle.
+    rarity: 2
     icon: {fileID: 21300000, guid: 296f87c23ca1e3343992b007026c2a51, type: 3}
     effects:
     - effectType: 6
       genericValue: 30
       additiveValue: 0
       multiplierValue: 0
+    - effectType: 2
+      genericValue: 0
+      additiveValue: 1
+      multiplierValue: 0
   - name: Diamond 1
-    description: Balls always bounce at a 45 degree angle.
-    rarity: 1
+    description: Balls are stronger and always bounce at a 45 degree angle.
+    rarity: 2
     icon: {fileID: 21300000, guid: 296f87c23ca1e3343992b007026c2a51, type: 3}
     effects:
     - effectType: 6
       genericValue: 45
       additiveValue: 0
       multiplierValue: 0
+    - effectType: 2
+      genericValue: 0
+      additiveValue: 1
+      multiplierValue: 0
   - name: Crescent 1
-    description: Balls always bounce at a 60 degree angle.
-    rarity: 1
+    description: Balls are stronger and always bounce at a 60 degree angle.
+    rarity: 2
     icon: {fileID: 21300000, guid: 296f87c23ca1e3343992b007026c2a51, type: 3}
     effects:
     - effectType: 6
       genericValue: 60
       additiveValue: 0
       multiplierValue: 0
+    - effectType: 2
+      genericValue: 0
+      additiveValue: 1
+      multiplierValue: 0
   - name: Random 1
-    description: Balls reflect in more random directions.
-    rarity: 2
+    description: Balls are stronger and reflect in more random directions.
+    rarity: 3
     icon: {fileID: 21300000, guid: 296f87c23ca1e3343992b007026c2a51, type: 3}
     effects:
     - effectType: 7
       genericValue: 20
       additiveValue: 0
       multiplierValue: 0
+    - effectType: 2
+      genericValue: 0
+      additiveValue: 1
+      multiplierValue: 0
   - name: Square 1
-    description: Balls always bounce at a 90 degree angle.
-    rarity: 2
+    description: Balls are stronger and always bounce at a 90 degree angle.
+    rarity: 3
     icon: {fileID: 21300000, guid: 296f87c23ca1e3343992b007026c2a51, type: 3}
     effects:
     - effectType: 6
       genericValue: 90
       additiveValue: 0
       multiplierValue: 0
+    - effectType: 2
+      genericValue: 0
+      additiveValue: 1
+      multiplierValue: 0
   - name: Ping Pong 1
-    description: Balls always reflect the same angle.
+    description: Balls are stronger and always reflect the same angle.
     rarity: 4
     icon: {fileID: 21300000, guid: 296f87c23ca1e3343992b007026c2a51, type: 3}
     effects:
@@ -458,33 +478,37 @@ MonoBehaviour:
       genericValue: 180
       additiveValue: 0
       multiplierValue: 0
+    - effectType: 2
+      genericValue: 0
+      additiveValue: 2
+      multiplierValue: 0
   - name: Flux Speed 1
     description: Ball fluctuates in speed.
     rarity: 2
     icon: {fileID: 21300000, guid: 7beffc9e4647913478d9de32ba399de1, type: 3}
     effects:
     - effectType: 9
-      genericValue: 0.6
+      genericValue: 0.75
       additiveValue: 4
-      multiplierValue: 1.25
+      multiplierValue: 1.5
   - name: Flux Speed 2
     description: Ball fluctuates in speed.
     rarity: 3
     icon: {fileID: 21300000, guid: 7beffc9e4647913478d9de32ba399de1, type: 3}
     effects:
     - effectType: 9
-      genericValue: 0.6
+      genericValue: 0.75
       additiveValue: 3.8
-      multiplierValue: 1.3
+      multiplierValue: 1.6
   - name: Flux Speed 3
     description: Ball fluctuates in speed.
     rarity: 2
     icon: {fileID: 21300000, guid: 7beffc9e4647913478d9de32ba399de1, type: 3}
     effects:
     - effectType: 9
-      genericValue: 0.6
+      genericValue: 0.8
       additiveValue: 3.5
-      multiplierValue: 1.4
+      multiplierValue: 1.75
   - name: Flux Size 1
     description: Ball fluctuates in size.
     rarity: 2
@@ -493,7 +517,7 @@ MonoBehaviour:
     - effectType: 8
       genericValue: 0.5
       additiveValue: 4
-      multiplierValue: 1.25
+      multiplierValue: 1.75
   - name: Flux Size 2
     description: Ball fluctuates in size.
     rarity: 3
@@ -502,7 +526,7 @@ MonoBehaviour:
     - effectType: 8
       genericValue: 0.5
       additiveValue: 3.8
-      multiplierValue: 1.3
+      multiplierValue: 1.9
   - name: Flux Size 3
     description: Ball fluctuates in size.
     rarity: 4
@@ -511,7 +535,7 @@ MonoBehaviour:
     - effectType: 8
       genericValue: 0.5
       additiveValue: 3.5
-      multiplierValue: 1.4
+      multiplierValue: 2.2
   currentPlayerID: 0
   pauseOverlay: {fileID: 743224717}
   levelUpText: {fileID: 2040040316}
@@ -529,11 +553,11 @@ MonoBehaviour:
     weight: 0
   weights2:
   - rarity: 0
-    weight: 70
+    weight: 68
   - rarity: 1
     weight: 20
   - rarity: 2
-    weight: 8
+    weight: 10
   - rarity: 3
     weight: 2
   - rarity: 4
@@ -999,8 +1023,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   xpPerBlock: 10
-  baseXPForNextLevel: 40
-  levelMultiplier: 1.6
+  baseXPForNextLevel: 30
+  levelMultiplier: 1.5
   player1XPText: {fileID: 1047082307}
   player2XPText: {fileID: 1756550703}
 --- !u!4 &715893014
