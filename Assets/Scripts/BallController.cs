@@ -14,7 +14,7 @@ public class BallController : MonoBehaviour
     public float sizeMult = 1f;
 
     public int pierce = 0;
-    public float pierceCooldown = 0.5f;
+    public float pierceCooldown = 1f;
     public float pierceCooldownTimer = 0f;
     public int availablePierce = 0;
     private bool isPierceCooldown = false;
@@ -23,9 +23,21 @@ public class BallController : MonoBehaviour
     public float boostDuration = 0f;
 
     public float chargeMult = 1f;
-    public float chargeRate = 1f;
+    private float localChargeMult = 1f;
+    private bool resetCharge = false;
+    public float chargeRate = 0.1f;
+    private float chargeTimer = 0f; // Timer to track charge rate timing
+    private float cumulativeChargeMult = 1f; // Initialize outside Update
 
-    public float bounceAngle;
+    public float bounceAngle = 0f;
+
+    public float fluxSizeTimer = 0f;
+    public float fluxSizeMin = 0f;
+    public float fluxSizeMax = 0f;
+
+    public float fluxSpeedTimer = 0f;
+    public float fluxSpeedMin = 0f;
+    public float fluxSpeedMax = 0f;
 
     private Rigidbody rb;
     private Vector3 direction;
@@ -63,6 +75,7 @@ public class BallController : MonoBehaviour
 
         ChooseRandomDirection();
         pierceCooldownTimer = 0f;
+        resetCharge = false;
     }
 
     void Update()
@@ -79,6 +92,55 @@ public class BallController : MonoBehaviour
                 pierceCooldownTimer = 0f; // Reset the cooldown timer
             }
         }
+
+        // Start with base speed calculation
+        float currentBaseSpeed = baseSpeed * speedMult;
+
+        if (!resetCharge && chargeTimer >= chargeRate)
+        {
+            cumulativeChargeMult *= chargeMult; // Stack the multiplier
+            chargeTimer = 0f; // Reset timer for next application
+        }
+        else if (resetCharge)
+        {
+            resetCharge = false;
+            cumulativeChargeMult = 1f; // Reset cumulative multiplier
+        }
+        chargeTimer += Time.deltaTime;
+
+        // Calculate the charged speed as the new baseline
+        float chargedSpeed = baseSpeed * speedMult * cumulativeChargeMult;
+
+        // Apply flux speed effect to the charged speed
+        if (fluxSpeedTimer > 0)
+        {
+            float cycleProgress = (Time.time % fluxSpeedTimer) / fluxSpeedTimer;
+            float sineWave = Mathf.Sin(cycleProgress * Mathf.PI * 2);
+            float normalizedSine = (sineWave + 1) / 2; // Normalize sine wave output to [0, 1]
+            float fluxMultiplier = Mathf.Lerp(fluxSpeedMin, fluxSpeedMax, normalizedSine);
+            chargedSpeed *= fluxMultiplier; // Apply flux effect to charged speed
+        }
+
+        // Use chargedSpeed, which now incorporates both charge and flux effects
+        rb.velocity = direction.normalized * chargedSpeed;
+        speed = chargedSpeed; // Update visible/debugging speed value
+
+        // Flux Size Effect
+        if (fluxSizeTimer > 0)
+        {
+            float sizeCycleProgress = (Time.time % fluxSizeTimer) / fluxSizeTimer;
+            float sizeMultiplier = CalculateFluxMultiplier(sizeCycleProgress, fluxSizeMin, fluxSizeMax);
+            size = baseSize * sizeMultiplier * sizeMult;
+            transform.localScale = new Vector3(size, size, size);
+        }
+    }
+
+    float CalculateFluxMultiplier(float progress, float minMultiplier, float maxMultiplier)
+    {
+        bool isScalingUp = progress <= 0.5f;
+        progress = isScalingUp ? progress * 2 : (progress - 0.5f) * 2;
+        float easedProgress = EaseOutQuart(progress);
+        return isScalingUp ? Mathf.Lerp(1f, maxMultiplier, easedProgress) : Mathf.Lerp(maxMultiplier, minMultiplier, easedProgress);
     }
 
     public void CalculateStats()
@@ -88,6 +150,16 @@ public class BallController : MonoBehaviour
         if (sizeMult <= 0.1f) { sizeMult = 0.1f; }
         if (speedMult <= 0.1f) { speedMult = 0.1f; }
         if (pierceCooldown <= 0.2f) { pierceCooldown = 0.2f; }
+        if (chargeRate <= 0.02f) { chargeRate = 0.02f; }
+
+        if (fluxSizeTimer != 0)
+        {
+            if (fluxSizeTimer <= 0.1f) { fluxSizeTimer = 0.1f; }
+        }
+        if (fluxSpeedTimer != 0)
+        {
+            if (fluxSpeedTimer <= 0.1f) { fluxSpeedTimer = 0.1f; }
+        }
 
         speed = baseSpeed * speedMult;
         size = baseSize * sizeMult;
@@ -96,6 +168,12 @@ public class BallController : MonoBehaviour
         availablePierce = newPierce;
 
         transform.localScale = new Vector3 (size,size,size);
+    }
+
+    void ResetCharge()
+    {
+        resetCharge = true;
+        chargeTimer = 0f;
     }
 
     private void ChooseRandomDirection()
@@ -108,6 +186,7 @@ public class BallController : MonoBehaviour
     {
         if (((1 << other.gameObject.layer) & collideWithLayer) != 0)
         {
+            ResetCharge();
             AdjustDirectionAndVelocity();
 
             StartCoroutine(SquashEffect());
@@ -192,7 +271,13 @@ public class BallController : MonoBehaviour
 
     private void AdjustDirectionAndVelocity(Vector3? collisionNormal = null, bool isWall = false)
     {
-        if (collisionNormal.HasValue)
+        if (bounceAngle != 0 && isWall)
+        {
+            // Calculate new direction based on the bounce angle
+            Vector3 bounceDirection = CalculateBounceDirection(collisionNormal.HasValue ? collisionNormal.Value : -direction);
+            direction = bounceDirection.normalized;
+        }
+        else if (collisionNormal.HasValue)
         {
             // Reflect the ball's direction based on the collision normal
             direction = Vector3.Reflect(direction, collisionNormal.Value);
@@ -203,11 +288,32 @@ public class BallController : MonoBehaviour
             direction = -direction;
         }
 
-        // Apply randomness to the direction. Increase the range if it's a wall to ensure it doesn't get stuck.
-        float angleRandomness = isWall ? randomness * 2 : randomness;
-        direction = Quaternion.Euler(0, Random.Range(-angleRandomness, angleRandomness), 0) * direction;
+        rb.velocity = direction * speed;
+    }
 
-        rb.velocity = direction.normalized * speed;
+    private Vector3 CalculateBounceDirection(Vector3 collisionNormal)
+    {
+        // Convert bounce angle to radians since Unity's math functions use radians
+        float angleRadians = bounceAngle * Mathf.Deg2Rad;
+
+        // Assuming the bounce angle is relative to the surface normal, calculate the new direction
+        // This simplistic approach might need adjustments based on your game's specific mechanics
+        Vector3 newDirection;
+
+        if (bounceAngle == 180)
+        {
+            // Perfect reflection
+            newDirection = -direction;
+        }
+        else
+        {
+            // Calculate rotation around the axis perpendicular to the collision normal and the initial direction
+            // This example assumes a 2D plane calculation; 3D might require more complex handling
+            Vector3 rotationAxis = Vector3.Cross(direction, collisionNormal).normalized;
+            newDirection = Quaternion.AngleAxis(bounceAngle, rotationAxis) * direction;
+        }
+
+        return newDirection;
     }
 
     private IEnumerator SquashEffect()
@@ -244,6 +350,11 @@ public class BallController : MonoBehaviour
         return t < 0.5
           ? (Mathf.Pow(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) / 2
           : (Mathf.Pow(2 * t - 2, 2) * ((c2 + 1) * (t * 2 - 2) + c2) + 2) / 2;
+    }
+
+    private float EaseOutQuart(float t)
+    {
+        return 1 - Mathf.Pow(1 - t, 4);
     }
 
 }

@@ -165,7 +165,7 @@ MonoBehaviour:
     - effectType: 0
       genericValue: 0
       additiveValue: 0
-      multiplierValue: 0.2
+      multiplierValue: 0.15
   - name: Speed Up 2
     description: Increase ball speed
     rarity: 1
@@ -174,7 +174,7 @@ MonoBehaviour:
     - effectType: 0
       genericValue: 0
       additiveValue: 0
-      multiplierValue: 0.25
+      multiplierValue: 0.18
   - name: Speed Up 3
     description: Increase ball speed
     rarity: 2
@@ -183,7 +183,7 @@ MonoBehaviour:
     - effectType: 0
       genericValue: 0
       additiveValue: 0
-      multiplierValue: 0.35
+      multiplierValue: 0.2
   - name: Speed Up 4
     description: Increase ball speed
     rarity: 3
@@ -192,7 +192,7 @@ MonoBehaviour:
     - effectType: 0
       genericValue: 0
       additiveValue: 0
-      multiplierValue: 0.5
+      multiplierValue: 0.24
   - name: Speed Up 5
     description: Increase ball speed
     rarity: 4
@@ -201,7 +201,7 @@ MonoBehaviour:
     - effectType: 0
       genericValue: 0
       additiveValue: 0
-      multiplierValue: 0.6
+      multiplierValue: 0.28
   - name: Size Up 1
     description: Increase ball size
     rarity: 0
@@ -334,13 +334,184 @@ MonoBehaviour:
       multiplierValue: -0.2
   - name: Puncture 1
     description: Pierce through 1 extra block every few seconds.
-    rarity: 0
+    rarity: 2
     icon: {fileID: 21300000, guid: 9f72b897dec68374b955006e85242c06, type: 3}
     effects:
     - effectType: 2
       genericValue: 0
       additiveValue: 1
       multiplierValue: 0
+  - name: Puncture 2
+    description: Pierce through 1 extra block every few seconds.
+    rarity: 3
+    icon: {fileID: 21300000, guid: 9f72b897dec68374b955006e85242c06, type: 3}
+    effects:
+    - effectType: 2
+      genericValue: 0
+      additiveValue: 1
+      multiplierValue: 0
+  - name: Puncture 3
+    description: Pierce through 2 extra blocks every few seconds.
+    rarity: 4
+    icon: {fileID: 21300000, guid: 9f72b897dec68374b955006e85242c06, type: 3}
+    effects:
+    - effectType: 2
+      genericValue: 0
+      additiveValue: 2
+      multiplierValue: 0
+  - name: Charge 1
+    description: Increase speed every second, resets on block contact.
+    rarity: 0
+    icon: {fileID: 21300000, guid: fde84aafa4e57bf49b5a7a2ccf14e440, type: 3}
+    effects:
+    - effectType: 5
+      genericValue: 0
+      additiveValue: 0
+      multiplierValue: 0.15
+  - name: Charge 2
+    description: Increase speed every second, resets on block contact.
+    rarity: 1
+    icon: {fileID: 21300000, guid: fde84aafa4e57bf49b5a7a2ccf14e440, type: 3}
+    effects:
+    - effectType: 5
+      genericValue: 0
+      additiveValue: 0
+      multiplierValue: 0.2
+  - name: Charge 3
+    description: Increase speed every second, resets on block contact.
+    rarity: 2
+    icon: {fileID: 21300000, guid: fde84aafa4e57bf49b5a7a2ccf14e440, type: 3}
+    effects:
+    - effectType: 5
+      genericValue: 0
+      additiveValue: 0
+      multiplierValue: 0.25
+  - name: Charge 4
+    description: Increase speed every second, resets on block contact.
+    rarity: 3
+    icon: {fileID: 21300000, guid: fde84aafa4e57bf49b5a7a2ccf14e440, type: 3}
+    effects:
+    - effectType: 5
+      genericValue: 0
+      additiveValue: 0
+      multiplierValue: 0.3
+  - name: Charge 5
+    description: Increase speed every second, resets on block contact.
+    rarity: 4
+    icon: {fileID: 21300000, guid: fde84aafa4e57bf49b5a7a2ccf14e440, type: 3}
+    effects:
+    - effectType: 5
+      genericValue: 0
+      additiveValue: 0
+      multiplierValue: 0.4
+  - name: Lazy 1
+    description: Balls always bounce at a 30 degree angle.
+    rarity: 1
+    icon: {fileID: 21300000, guid: 296f87c23ca1e3343992b007026c2a51, type: 3}
+    effects:
+    - effectType: 6
+      genericValue: 30
+      additiveValue: 0
+      multiplierValue: 0
+  - name: Diamond 1
+    description: Balls always bounce at a 45 degree angle.
+    rarity: 1
+    icon: {fileID: 21300000, guid: 296f87c23ca1e3343992b007026c2a51, type: 3}
+    effects:
+    - effectType: 6
+      genericValue: 45
+      additiveValue: 0
+      multiplierValue: 0
+  - name: Crescent 1
+    description: Balls always bounce at a 60 degree angle.
+    rarity: 1
+    icon: {fileID: 21300000, guid: 296f87c23ca1e3343992b007026c2a51, type: 3}
+    effects:
+    - effectType: 6
+      genericValue: 60
+      additiveValue: 0
+      multiplierValue: 0
+  - name: Random 1
+    description: Balls reflect in more random directions.
+    rarity: 2
+    icon: {fileID: 21300000, guid: 296f87c23ca1e3343992b007026c2a51, type: 3}
+    effects:
+    - effectType: 7
+      genericValue: 20
+      additiveValue: 0
+      multiplierValue: 0
+  - name: Square 1
+    description: Balls always bounce at a 90 degree angle.
+    rarity: 2
+    icon: {fileID: 21300000, guid: 296f87c23ca1e3343992b007026c2a51, type: 3}
+    effects:
+    - effectType: 6
+      genericValue: 90
+      additiveValue: 0
+      multiplierValue: 0
+  - name: Ping Pong 1
+    description: Balls always reflect the same angle.
+    rarity: 4
+    icon: {fileID: 21300000, guid: 296f87c23ca1e3343992b007026c2a51, type: 3}
+    effects:
+    - effectType: 6
+      genericValue: 180
+      additiveValue: 0
+      multiplierValue: 0
+  - name: Flux Speed 1
+    description: Ball fluctuates in speed.
+    rarity: 2
+    icon: {fileID: 21300000, guid: 7beffc9e4647913478d9de32ba399de1, type: 3}
+    effects:
+    - effectType: 9
+      genericValue: 0.6
+      additiveValue: 4
+      multiplierValue: 1.25
+  - name: Flux Speed 2
+    description: Ball fluctuates in speed.
+    rarity: 3
+    icon: {fileID: 21300000, guid: 7beffc9e4647913478d9de32ba399de1, type: 3}
+    effects:
+    - effectType: 9
+      genericValue: 0.6
+      additiveValue: 3.8
+      multiplierValue: 1.3
+  - name: Flux Speed 3
+    description: Ball fluctuates in speed.
+    rarity: 2
+    icon: {fileID: 21300000, guid: 7beffc9e4647913478d9de32ba399de1, type: 3}
+    effects:
+    - effectType: 9
+      genericValue: 0.6
+      additiveValue: 3.5
+      multiplierValue: 1.4
+  - name: Flux Size 1
+    description: Ball fluctuates in size.
+    rarity: 2
+    icon: {fileID: 21300000, guid: 64ace4a70419f894793f4fb0537bbbea, type: 3}
+    effects:
+    - effectType: 8
+      genericValue: 0.5
+      additiveValue: 4
+      multiplierValue: 1.25
+  - name: Flux Size 2
+    description: Ball fluctuates in size.
+    rarity: 3
+    icon: {fileID: 21300000, guid: 64ace4a70419f894793f4fb0537bbbea, type: 3}
+    effects:
+    - effectType: 8
+      genericValue: 0.5
+      additiveValue: 3.8
+      multiplierValue: 1.3
+  - name: Flux Size 3
+    description: Ball fluctuates in size.
+    rarity: 4
+    icon: {fileID: 21300000, guid: 64ace4a70419f894793f4fb0537bbbea, type: 3}
+    effects:
+    - effectType: 8
+      genericValue: 0.5
+      additiveValue: 3.5
+      multiplierValue: 1.4
   currentPlayerID: 0
   pauseOverlay: {fileID: 743224717}
   levelUpText: {fileID: 2040040316}
@@ -828,8 +999,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   xpPerBlock: 10
-  baseXPForNextLevel: 50
-  levelMultiplier: 1.65
+  baseXPForNextLevel: 40
+  levelMultiplier: 1.6
   player1XPText: {fileID: 1047082307}
   player2XPText: {fileID: 1756550703}
 --- !u!4 &715893014

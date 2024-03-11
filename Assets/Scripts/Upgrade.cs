@@ -29,6 +29,9 @@ public class Upgrade
         Boost, // Temp speed boost on collision
         Charge, // constant speed increase, reset on collision
         BounceAngle, // Preferred bounce angle on collision
+        RandomAngle, //overwrite bounce angle with random angle value
+        FluxSize, //fluctuating size
+        FluxSpeed, //fluctuating speed
     }
 
     public enum Rarity

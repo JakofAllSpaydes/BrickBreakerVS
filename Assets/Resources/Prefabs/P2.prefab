@@ -138,11 +138,20 @@ MonoBehaviour:
   size: 0.6
   sizeMult: 1
   pierce: 0
+  pierceCooldown: 1
+  pierceCooldownTimer: 0
+  availablePierce: 0
   boostMult: 1
   boostDuration: 0
   chargeMult: 1
-  chargeRate: 1
+  chargeRate: 0.2
   bounceAngle: 0
+  fluxSizeTimer: 0
+  fluxSizeMin: 0
+  fluxSizeMax: 0
+  fluxSpeedTimer: 0
+  fluxSpeedMin: 0
+  fluxSpeedMax: 0
   collideWithLayer:
     serializedVersion: 2
     m_Bits: 64

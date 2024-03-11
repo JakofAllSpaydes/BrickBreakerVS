@@ -312,7 +312,33 @@ public class GameManager : MonoBehaviour
                             ball.chargeMult += effect.multiplierValue;
                             break;
                         case Upgrade.EffectType.BounceAngle:
-                            // Ensure your BallController script can handle this property
+                            ball.bounceAngle = effect.genericValue;
+                            break;
+                        case Upgrade.EffectType.RandomAngle:
+                            ball.randomness = effect.genericValue;
+                            ball.bounceAngle = 0f;
+                            break;
+                        case Upgrade.EffectType.FluxSize:
+                            if (ball.fluxSizeTimer == 0)
+                            {
+                                ball.fluxSizeTimer = effect.additiveValue;
+                            } else
+                            {
+                                ball.fluxSizeTimer = Mathf.Min(ball.fluxSizeTimer, effect.additiveValue);
+                            }
+                            ball.fluxSizeMin = Mathf.Max(ball.fluxSizeMin, effect.genericValue);
+                            ball.fluxSizeMax += effect.multiplierValue;
+                            break;
+                        case Upgrade.EffectType.FluxSpeed:
+                            if (ball.fluxSpeedTimer == 0)
+                            {
+                                ball.fluxSpeedTimer = effect.additiveValue;
+                            } else
+                            {
+                                ball.fluxSpeedTimer = Mathf.Min(ball.fluxSpeedTimer, effect.additiveValue);
+                            }
+                            ball.fluxSpeedMin = Mathf.Max(ball.fluxSpeedMin, effect.genericValue);
+                            ball.fluxSpeedMax += effect.multiplierValue;
                             break;
                             // Add cases for other effects as needed
                     }
