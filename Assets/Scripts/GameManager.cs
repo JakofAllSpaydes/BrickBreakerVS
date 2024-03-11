@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -48,6 +49,16 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
     private bool winState = false;
     private bool gamePaused = false;
+
+    public CameraController cameraController;
+
+    public float hitstopCooldown = 0.5f;
+    public float hitstopDuration = 0.05f;
+    public float lastHitstopTime = -1f;
+    private Coroutine hitstopCoroutine = null; // Store reference to the coroutine
+
+    public List<Color> rarityColors;
+    public Image ownershipFillBar; // This is the fill bar for Player 1
 
     private void Awake()
     {
@@ -99,11 +110,8 @@ public class GameManager : MonoBehaviour
 
     void UpdateOwnershipUI()
     {
-        int p1Percentage = Mathf.RoundToInt((float)player1Blocks / totalBlocks * 100);
-        int p2Percentage = Mathf.RoundToInt((float)player2Blocks / totalBlocks * 100);
-
-        p1BlocksText.text = $"Owned: {p1Percentage}%";
-        p2BlocksText.text = $"Owned: {p2Percentage}%";
+        float p1OwnershipPercentage = (float)player1Blocks / totalBlocks;
+        ownershipFillBar.fillAmount = p1OwnershipPercentage;
     }
 
     void DisplayTime(float timeToDisplay)
@@ -181,6 +189,12 @@ public class GameManager : MonoBehaviour
             // Find and set the Icon image
             Image iconImage = option.transform.Find("Icon").GetComponent<Image>();
             if (iconImage != null) iconImage.sprite = upgrade.icon;
+
+            Image optionImage = option.GetComponent<Image>(); // Assuming the option GameObject has an Image component
+            if (optionImage != null && rarityColors.Count > (int)upgrade.rarity)
+            {
+                optionImage.color = rarityColors[(int)upgrade.rarity];
+            }
 
             Button optionButton = option.GetComponent<Button>();
             if (optionButton != null)
@@ -280,6 +294,7 @@ public class GameManager : MonoBehaviour
                         case Upgrade.EffectType.Pierce:
                             int amountToPierce = Mathf.RoundToInt(effect.additiveValue);
                             ball.pierce += amountToPierce;
+                            ball.pierceCooldown -= effect.genericValue;
                             break;
                         case Upgrade.EffectType.Split:
                             int numberOfBallsToSplit = Mathf.RoundToInt(effect.additiveValue);
@@ -318,7 +333,13 @@ public class GameManager : MonoBehaviour
         CleanupUpgradeOptions();
         Time.timeScale = previousTimeScale;
         gamePaused = false;
+
+        if (!countdownActive)
+        {
+            Time.timeScale = 1f; // Reset to default timescale
+        }
     }
+
 
     void CleanupUpgradeOptions()
     {
@@ -374,6 +395,7 @@ public class GameManager : MonoBehaviour
         currentLeadingPlayer = winningPlayer; // Store the current leading player
         currentCountdownTime = countdownDuration;
         countdownText.gameObject.SetActive(true);
+        cameraController.StartZoomEffect();
     }
 
     public void HandleCountdown()
@@ -399,6 +421,7 @@ public class GameManager : MonoBehaviour
 
     void ResetWinCondition()
     {
+        cameraController.StopZoomEffect();
         countdownActive = false;
         countdownText.gameObject.SetActive(false);
         Time.timeScale = 1f; // Reset game speed to normal
@@ -413,6 +436,46 @@ public class GameManager : MonoBehaviour
         currentLeadingPlayer = 0; // Reset leading player after declaring a winner
     }
 
+
+    public void TriggerHitstop()
+    {
+        if (Time.time - lastHitstopTime >= hitstopCooldown)
+        {
+            if (hitstopCoroutine == null)
+            {
+                hitstopCoroutine = StartCoroutine(HitstopEffect());
+                lastHitstopTime = Time.time;
+            }
+        }
+    }
+
+    private IEnumerator HitstopEffect()
+    {
+        float originalTimeScale = Time.timeScale;
+        float elapsedTime = 0f;
+
+        // Loop for the duration of the hitstop effect
+        while (elapsedTime < hitstopDuration)
+        {
+            elapsedTime += Time.unscaledDeltaTime;
+            float t = Mathf.Clamp01(elapsedTime / hitstopDuration); // Normalize and clamp t between 0 and 1
+            Time.timeScale = Mathf.Lerp(originalTimeScale, 0f, EaseOutQuad(t));
+            yield return null;
+        }
+
+        // Immediately reset time scale to original after the loop
+        if (!gamePaused)
+        {
+            Time.timeScale = originalTimeScale;
+        }
+
+        hitstopCoroutine = null; // Reset the coroutine reference
+    }
+
+    private float EaseOutQuad(float t)
+    {
+        return 1 - (1 - t) * (1 - t);
+    }
 
     public void ResetUpgradesAndBalls()
     {
