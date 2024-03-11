@@ -15,8 +15,8 @@ public class BallController : MonoBehaviour
 
     public int pierce = 0;
     public float pierceCooldown = 0.5f;
-    private float pierceCooldownTimer = 0f;
-    private int availablePierce = 0;
+    public float pierceCooldownTimer = 0f;
+    public int availablePierce = 0;
     private bool isPierceCooldown = false;
 
     public float boostMult = 1f;
@@ -62,11 +62,10 @@ public class BallController : MonoBehaviour
         }
 
         ChooseRandomDirection();
-        availablePierce = pierce; // Initialize availablePierce
         pierceCooldownTimer = 0f;
     }
 
-    void FixedUpdate()
+    void Update()
     {
         if (isPierceCooldown && Time.timeScale > 0)
         {
@@ -75,7 +74,8 @@ public class BallController : MonoBehaviour
             {
                 // Cooldown has finished
                 isPierceCooldown = false;
-                availablePierce = pierce; // Refresh available pierce count
+                int newPierce = pierce;
+                availablePierce = newPierce; // Refresh available pierce count
                 pierceCooldownTimer = 0f; // Reset the cooldown timer
             }
         }
@@ -91,7 +91,9 @@ public class BallController : MonoBehaviour
 
         speed = baseSpeed * speedMult;
         size = baseSize * sizeMult;
-        availablePierce = pierce;
+
+        int newPierce = pierce;
+        availablePierce = newPierce;
 
         transform.localScale = new Vector3 (size,size,size);
     }
@@ -176,6 +178,7 @@ public class BallController : MonoBehaviour
             blockInfo.block.SetOwnership(playerID);
             Debug.Log("Pierce applied");
         }
+        isPierceCooldown = true;
     }
 
     private void OnCollisionEnter(Collision collision)
